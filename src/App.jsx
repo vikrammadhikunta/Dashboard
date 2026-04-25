@@ -76,7 +76,7 @@ function App() {
     activeMachines: 61,
     totalRevenue: 3800000, // 38 lakhs revenue
     dailyRevenue: 150000, // 1.5 lakhs daily
-    monthlyGrowth: 8.4,
+    monthlyGrowth: 12.4,
   });
   
   const [dailyProduction, setDailyProduction] = useState([]);
