@@ -39,6 +39,16 @@ const formatINR = (num) => {
   }).format(num);
 };
 
+// Helper: Format number in lakhs/crores for better readability
+const formatNumber = (num) => {
+  if (num >= 10000000) {
+    return (num / 10000000).toFixed(1) + ' Cr';
+  } else if (num >= 100000) {
+    return (num / 100000).toFixed(1) + ' L';
+  }
+  return num.toLocaleString();
+};
+
 // Cities data
 const cities = ['Hyderabad', 'Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Pune'];
 
@@ -59,12 +69,13 @@ function App() {
   const [selectedCity, setSelectedCity] = useState('All');
   const [lastUpdateTime, setLastUpdateTime] = useState(new Date());
   
+  // Updated metrics with your specific values
   const [metrics, setMetrics] = useState({
-    totalProduced: 12450,
-    totalMachinesInstalled: 487,
-    activeMachines: 398,
-    totalRevenue: 12500000,
-    dailyRevenue: 342000,
+    totalProduced: 130000, // 1.3 lakh helmets
+    totalMachinesInstalled: 65,
+    activeMachines: 61,
+    totalRevenue: 3800000, // 38 lakhs revenue
+    dailyRevenue: 150000, // 1.5 lakhs daily
     monthlyGrowth: 8.4,
   });
   
@@ -73,7 +84,7 @@ function App() {
   const [cumulativeRevenue, setCumulativeRevenue] = useState([]);
   const [datesLabels, setDatesLabels] = useState([]);
   const [cityDeployments, setCityDeployments] = useState([]);
-  const [machineStatus, setMachineStatus] = useState({ active: 82, maintenance: 12, offline: 6 });
+  const [machineStatus, setMachineStatus] = useState({ active: 94, maintenance: 4, offline: 2 }); // 61/65 = 94%
   const [forecastProduction, setForecastProduction] = useState([]);
   const [forecastRevenue, setForecastRevenue] = useState([]);
   const [forecastLabels, setForecastLabels] = useState([]);
@@ -95,26 +106,29 @@ function App() {
     }
     setDatesLabels(newDates);
     
+    // Production series starting from slightly lower and growing
     let baseProd = metrics.totalProduced;
     let newProdSeries = [];
-    let currentProdVal = baseProd * 0.75;
+    let currentProdVal = baseProd * 0.85;
     for (let i = 0; i < daysToShow; i++) {
-      let growth = currentProdVal * 0.012 * (0.7 + Math.random() * 0.8);
+      let growth = currentProdVal * 0.008 * (0.7 + Math.random() * 0.8);
       currentProdVal = currentProdVal + growth;
       newProdSeries.push(Math.floor(currentProdVal));
     }
     setDailyProduction(newProdSeries);
     
+    // Revenue series with daily growth
     let baseDailyRev = metrics.dailyRevenue;
     let newDailyRevSeries = [];
-    let currentRevVal = baseDailyRev * 0.8;
+    let currentRevVal = baseDailyRev * 0.88;
     for (let i = 0; i < daysToShow; i++) {
-      let revGrowth = currentRevVal * 0.009 * (0.6 + Math.random() * 0.9);
+      let revGrowth = currentRevVal * 0.007 * (0.6 + Math.random() * 0.9);
       currentRevVal = currentRevVal + revGrowth;
       newDailyRevSeries.push(Math.floor(currentRevVal));
     }
     setDailyRevenueSeries(newDailyRevSeries);
     
+    // Cumulative Revenue
     let cumul = [];
     let running = metrics.totalRevenue - newDailyRevSeries.reduce((a, b) => a + b, 0) + newDailyRevSeries[0];
     for (let i = 0; i < newDailyRevSeries.length; i++) {
@@ -123,15 +137,16 @@ function App() {
     }
     setCumulativeRevenue(cumul);
     
+    // Update metrics with realistic growth
     setMetrics(prev => {
-      let prodIncrease = Math.floor(prev.totalProduced * 0.0085) + 8;
+      let prodIncrease = Math.floor(prev.totalProduced * 0.006) + 50;
       let totalProducedNew = prev.totalProduced + prodIncrease;
-      let machinesNew = prev.totalMachinesInstalled + (Math.random() > 0.6 ? 1 : 0);
-      let activeNew = Math.min(machinesNew, Math.floor(machinesNew * 0.82) + Math.floor(Math.random() * 2));
-      let revenueGrowth = prev.totalRevenue * 0.0075 + 75000;
+      let machinesNew = prev.totalMachinesInstalled + (Math.random() > 0.7 ? 1 : 0);
+      let activeNew = Math.min(machinesNew, Math.floor(machinesNew * 0.94) + (Math.random() > 0.8 ? 1 : 0));
+      let revenueGrowth = prev.totalRevenue * 0.006 + 15000;
       let totalRevenueNew = prev.totalRevenue + revenueGrowth;
-      let dailyRevNew = prev.dailyRevenue * (1 + (0.008 + Math.random() * 0.006));
-      let monthlyGrowthNew = prev.monthlyGrowth + (Math.random() * 0.4 - 0.1);
+      let dailyRevNew = prev.dailyRevenue * (1 + (0.006 + Math.random() * 0.004));
+      let monthlyGrowthNew = prev.monthlyGrowth + (Math.random() * 0.3 - 0.05);
       if (monthlyGrowthNew < 5) monthlyGrowthNew = 5.2;
       if (monthlyGrowthNew > 16) monthlyGrowthNew = 15.8;
       return {
@@ -144,30 +159,39 @@ function App() {
       };
     });
     
-    let growthFactor = 1 + (dayCounter.current / 450);
+    // City deployments based on realistic distribution
+    let growthFactor = 1 + (dayCounter.current / 600);
     let newCityData = cities.map(city => {
-      let base = { Hyderabad: 145, Mumbai: 210, Delhi: 198, Bangalore: 175, Chennai: 98, Pune: 112 };
-      return Math.floor(base[city] * growthFactor + Math.random() * 5);
+      let base = { 
+        Hyderabad: 18, 
+        Mumbai: 15, 
+        Delhi: 14, 
+        Bangalore: 12, 
+        Chennai: 4, 
+        Pune: 2 
+      };
+      return Math.floor(base[city] * growthFactor + Math.random() * 2);
     });
     setCityDeployments(newCityData);
     
-    let activeRatio = 0.81 + (dayCounter.current / 1200);
-    if (activeRatio > 0.93) activeRatio = 0.93;
+    // Machine status (active machines percentage)
+    let activeRatio = metrics.activeMachines / metrics.totalMachinesInstalled;
     let active = Math.floor(activeRatio * 100);
     let maintenance = Math.floor((1 - activeRatio) * 0.6 * 100);
     let offline = 100 - active - maintenance;
     setMachineStatus({ active, maintenance, offline });
     
+    // Forecast for next 30 days
     let forecastProdArr = [];
     let forecastRevArr = [];
     let lastProd = metrics.totalProduced;
     let lastDailyRev = metrics.dailyRevenue;
     for (let i = 1; i <= 30; i++) {
-      let prodForecast = lastProd * (1 + 0.0095 + Math.sin(i / 15) * 0.003);
+      let prodForecast = lastProd * (1 + 0.008 + Math.sin(i / 15) * 0.002);
       lastProd = prodForecast;
       forecastProdArr.push(Math.floor(prodForecast));
       
-      let revForecast = lastDailyRev * (1 + 0.0082 + (i / 400));
+      let revForecast = lastDailyRev * (1 + 0.007 + (i / 500));
       lastDailyRev = revForecast;
       forecastRevArr.push(Math.floor(revForecast));
     }
@@ -180,7 +204,7 @@ function App() {
   
   useEffect(() => {
     refreshAllData();
-    intervalRef.current = setInterval(refreshAllData, 4200);
+    intervalRef.current = setInterval(refreshAllData, 4500);
     return () => clearInterval(intervalRef.current);
   }, []);
   
@@ -363,19 +387,19 @@ function App() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* KPI Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
-          <div className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-emerald-200 group">
+          <div className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-emerald-200">
             <div className="flex items-center justify-between mb-3">
               <span className="text-3xl">🪖</span>
-              <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">+{Math.floor(metrics.totalProduced * 0.008)}</span>
+              <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">+{formatNumber(Math.floor(metrics.totalProduced * 0.006))}</span>
             </div>
-            <p className="text-gray-500 text-xs uppercase tracking-wide font-semibold">Total Produced</p>
-            <p className="text-2xl font-bold text-gray-800 mt-1"><AnimatedNumber value={metrics.totalProduced} /></p>
+            <p className="text-gray-500 text-xs uppercase tracking-wide font-semibold">Total Helmets</p>
+            <p className="text-2xl font-bold text-gray-800 mt-1">{formatNumber(metrics.totalProduced)}</p>
           </div>
           
           <div className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-emerald-200">
             <div className="flex items-center justify-between mb-3">
               <span className="text-3xl">🔧</span>
-              <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">+{Math.floor(Math.random() * 2)}</span>
+              <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">+{metrics.totalMachinesInstalled > 65 ? Math.floor(Math.random() * 2) : 0}</span>
             </div>
             <p className="text-gray-500 text-xs uppercase tracking-wide font-semibold">Machines Installed</p>
             <p className="text-2xl font-bold text-gray-800 mt-1"><AnimatedNumber value={metrics.totalMachinesInstalled} /></p>
@@ -502,7 +526,7 @@ function App() {
         {/* Footer */}
         <div className="mt-8 text-center py-4 border-t border-gray-200">
           <p className="text-xs text-gray-400 flex items-center justify-center gap-2">
-            <span>🔄 Data auto-simulates real-world growth every 4 seconds</span>
+            <span>🔄 Data auto-simulates real-world growth every 4.5 seconds</span>
             <span>•</span>
             <span>Freshpod India • Disinfection for tomorrow</span>
             <span>•</span>
